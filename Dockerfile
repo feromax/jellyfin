@@ -51,9 +51,11 @@ RUN apt-get update \
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
+COPY start.sh /
+RUN chmod 755 /start.sh \
+  && chown root.root /start.sh
+
 EXPOSE 8096
-VOLUME /cache /config /media
-ENTRYPOINT ["./jellyfin/jellyfin", \
-    "--datadir", "/config", \
-    "--cachedir", "/cache", \
-    "--ffmpeg", "/usr/lib/jellyfin-ffmpeg/ffmpeg"]
+VOLUME /config /media
+ENTRYPOINT ["/start.sh"]
+EXPOSE 8096
