@@ -341,7 +341,7 @@ namespace Emby.Server.Implementations.Library
             if (item is LiveTvProgram)
             {
                 _logger.LogDebug(
-                    "Deleting item, Type: {0}, Name: {1}, Path: {2}, Id: {3}",
+                    "Removing item, Type: {0}, Name: {1}, Path: {2}, Id: {3}",
                     item.GetType().Name,
                     item.Name ?? "Unknown name",
                     item.Path ?? string.Empty,
@@ -350,7 +350,7 @@ namespace Emby.Server.Implementations.Library
             else
             {
                 _logger.LogInformation(
-                    "Deleting item, Type: {0}, Name: {1}, Path: {2}, Id: {3}",
+                    "Removing item, Type: {0}, Name: {1}, Path: {2}, Id: {3}",
                     item.GetType().Name,
                     item.Name ?? "Unknown name",
                     item.Path ?? string.Empty,
@@ -368,7 +368,12 @@ namespace Emby.Server.Implementations.Library
                     continue;
                 }
 
-                _logger.LogDebug("Deleting path {MetadataPath}", metadataPath);
+                _logger.LogDebug(
+                    "Deleting metadata path, Type: {0}, Name: {1}, Path: {2}, Id: {3}",
+                    item.GetType().Name,
+                    item.Name ?? "Unknown name",
+                    metadataPath,
+                    item.Id);
 
                 try
                 {
@@ -392,7 +397,13 @@ namespace Emby.Server.Implementations.Library
                     {
                         try
                         {
-                            _logger.LogDebug("Deleting path {path}", fileSystemInfo.FullName);
+                            _logger.LogInformation(
+                                "Deleting item path, Type: {0}, Name: {1}, Path: {2}, Id: {3}",
+                                item.GetType().Name,
+                                item.Name ?? "Unknown name",
+                                fileSystemInfo.FullName,
+                                item.Id);
+
                             if (fileSystemInfo.IsDirectory)
                             {
                                 Directory.Delete(fileSystemInfo.FullName, true);
@@ -3000,21 +3011,6 @@ namespace Emby.Server.Implementations.Library
             });
         }
 
-        private static bool ValidateNetworkPath(string path)
-        {
-            // if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            //{
-            //    // We can't validate protocol-based paths, so just allow them
-            //    if (path.IndexOf("://", StringComparison.OrdinalIgnoreCase) == -1)
-            //    {
-            //        return Directory.Exists(path);
-            //    }
-            //}
-
-            // Without native support for unc, we cannot validate this when running under mono
-            return true;
-        }
-
         private const string ShortcutFileExtension = ".mblink";
 
         public void AddMediaPath(string virtualFolderName, MediaPathInfo pathInfo)
@@ -3039,11 +3035,6 @@ namespace Emby.Server.Implementations.Library
             if (!Directory.Exists(path))
             {
                 throw new FileNotFoundException("The path does not exist.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(pathInfo.NetworkPath) && !ValidateNetworkPath(pathInfo.NetworkPath))
-            {
-                throw new FileNotFoundException("The network path does not exist.");
             }
 
             var rootFolderPath = _configurationManager.ApplicationPaths.DefaultUserViewsPath;
@@ -3082,11 +3073,6 @@ namespace Emby.Server.Implementations.Library
             if (pathInfo == null)
             {
                 throw new ArgumentNullException(nameof(pathInfo));
-            }
-
-            if (!string.IsNullOrWhiteSpace(pathInfo.NetworkPath) && !ValidateNetworkPath(pathInfo.NetworkPath))
-            {
-                throw new FileNotFoundException("The network path does not exist.");
             }
 
             var rootFolderPath = _configurationManager.ApplicationPaths.DefaultUserViewsPath;
